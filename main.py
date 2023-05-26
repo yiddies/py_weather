@@ -1,20 +1,28 @@
-import requests
-from geopy.geocoders import Nominatim
+from functions import get_current_weather, get_location, get_future_weather, print_current_weather, print_future_weather
 
-geolocator = Nominatim(user_agent='MyApp')
-location = geolocator.geocode(input("Input City "))
+while True:
+    print('What would you like to do? (Check weather with "Check <city>", Check future weather with "Check future <city>", exit with "Exit")')
+    user_action = input("")
+    user_action = user_action.strip().lower()
+    
+    if user_action.startswith('check'):
+        if 'future' in user_action:
+            command, city = user_action.split('future', 1)
+            forecast_days = 7
+        else:
+            command, city = user_action.split(' ', 1)
+            forecast_days = 1
 
-url = "https://weatherbit-v1-mashape.p.rapidapi.com/forecast/minutely"
+        location = get_location(city)
+        if location is None:
+            continue
 
-querystring = {"lat": location.latitude, "lon": location.longitude}
+        if forecast_days == 1:
+            data = get_current_weather(location)
+            print_current_weather(location, data)
+        else:
+            data = get_future_weather(location, forecast_days)
+            print_future_weather(location, data, forecast_days)
 
-headers = {
-    "X-RapidAPI-Key": "a5c1e156fdmsh2f0660f6bc4fcafp1d4769jsn64dc23f94b6e",
-    "X-RapidAPI-Host": "weatherbit-v1-mashape.p.rapidapi.com"
-}
-
-response = requests.get(url, headers=headers, params=querystring)
-
-data = response.json()
-
-print("City Name:", data["city_name"])
+    elif user_action.startswith('exit'):
+        break
